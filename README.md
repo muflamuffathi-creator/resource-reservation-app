@@ -1,43 +1,43 @@
-# PrimeWave Lab — Resource Reservation Management System
+﻿# 🏢 PrimeWave Lab — Resource Reservation Management System
 
-> **Full-Stack Engineering Internship Technical Assessment**  
-> Built with Next.js (App Router), TypeScript, PostgreSQL (Neon Lakebase), and Prisma ORM.
+> 🚀 **Full-Stack Engineering Internship Technical Assessment**  
+> ⚡ Built with **Next.js (App Router)**, **TypeScript**, **PostgreSQL (Neon)**, and **Prisma ORM**.
 
 ---
 
-## 1. Executive Summary & Business Scenario
+## 🌟 Executive Summary & Business Scenario
 
-Growing organizations manage numerous shared resources and facilities—including executive boardrooms, hardware testing benches, rapid prototyping gear, podcast studios, and high-performance computing clusters.
+Modern, high-growth organizations manage numerous shared resources and high-value facilities — including executive boardrooms, hardware testing benches, rapid prototyping gear, podcast studios, and high-performance computing clusters.
 
-### The Problem
-When managed informally through manual logs or chat messages, organizations suffer from:
-* **Double-Bookings & Scheduling Clashes:** Overlapping reservations creating operational friction.
-* **Lack of Real-Time Visibility:** Uncertainty around which assets are free or in maintenance.
-* **Race Conditions:** Simultaneous booking attempts corrupting scheduling state.
+### ⚠️ The Problem
+When facilities are managed informally through spreadsheets, manual logs, or chat messages, organizations face:
+* 💥 **Double-Bookings & Scheduling Clashes:** Overlapping reservations causing operational disruptions and team disputes.
+* 👁️ **Lack of Real-Time Visibility:** Uncertainty regarding which assets are currently free, occupied, or undergoing maintenance.
+* ⏱️ **Race Conditions:** Simultaneous booking attempts corrupting scheduling state.
 
-### The Solution
+### 💡 The Solution
 This centralized digital platform solves these challenges through:
-1. **Interactive Resource Catalog:** Categorized directory of all shared facilities with live capacity and status tracking.
-2. **Deterministic Conflict-Prevention Engine:** Dual-layer overlap detection (pre-flight UI validation + ACID transaction serialization).
-3. **Daily Schedule & Timeline Grid:** Visual hourly matrix (08:00–18:00) showing booked vs. free blocks.
-4. **Self-Service Reservation Management:** Audit logs with immediate cancellation and status updates.
+1. 🗂️ **Interactive Resource Catalog:** Categorized directory of all shared facilities with live capacity and status tracking.
+2. 🛡️ **Deterministic Conflict-Prevention Engine:** Dual-layer overlap detection (pre-flight UI validation + ACID transaction serialization).
+3. 📅 **Daily Schedule & Timeline Grid:** Visual hourly matrix (`08:00 – 18:00`) showing booked vs. free slots in real time.
+4. 📋 **Self-Service Reservation Management:** Audit logs with instant cancellation and real-time status updates.
 
 ---
 
-## 2. Technology Stack & Architectural Decisions
+## 🛠️ Technology Stack & Architectural Decisions
 
 | Layer | Technology | Rationale |
 |---|---|---|
-| **Framework** | **Next.js (App Router)** | Full-stack architecture with React Server Components, server actions, and optimized route handlers. |
-| **Language** | **TypeScript** | Strict type safety across database schemas, API contracts, and UI components. |
-| **Database** | **PostgreSQL (Neon Lakebase)** | Serverless, branchable Postgres with pooled connections for app traffic and unpooled direct URLs for migrations. |
-| **ORM** | **Prisma ORM** | Type-safe schema definition, transactional consistency (`$transaction`), and auto-generated clients. |
-| **Styling** | **Tailwind CSS** | Sleek dark-mode aesthetic with custom design tokens and micro-interactions. |
-| **Icons** | **Lucide React** | Accessible, consistent iconography. |
+| ⚡ **Framework** | **Next.js 16 (App Router)** | Full-stack architecture with React Server Components, server actions, and optimized route handlers. |
+| 🔷 **Language** | **TypeScript** | Strict end-to-end type safety across database schemas, API contracts, and UI components. |
+| 🐘 **Database** | **PostgreSQL (Neon Serverless)** | Cloud Postgres with connection pooling for high concurrency and zero-maintenance scaling. |
+| 💎 **ORM** | **Prisma ORM** | Type-safe schema definition, transactional consistency (`$transaction`), and auto-generated clients. |
+| 🎨 **Styling** | **Tailwind CSS** | Sleek dark-mode aesthetic with custom design tokens and micro-interactions. |
+| 🎭 **Icons** | **Lucide React** | Modern, accessible, and lightweight icon library. |
 
 ---
 
-## 3. Entity Relationship (ER) Diagram
+## 📊 Entity Relationship (ER) Diagram
 
 ```mermaid
 erDiagram
@@ -97,89 +97,101 @@ erDiagram
 
 ---
 
-## 4. Conflict-Checking Logic & Concurrency Control
+## 🔒 Conflict-Checking Logic & Concurrency Control
 
-### Mathematical Overlap Theorem
+### 🧮 Mathematical Overlap Theorem
 Two time intervals $[A_{\text{start}}, A_{\text{end}}]$ and $[B_{\text{start}}, B_{\text{end}}]$ collide if and only if:
+
 $$\text{Start}_A < \text{End}_B \quad \land \quad \text{End}_A > \text{Start}_B$$
 
-### Dual-Layer Implementation:
-1. **Pre-flight Live Detection (`/api/check-conflict`):**
-   * Debounced check triggered as user selects time slots in the booking modal.
-   * Warns the user *before* submission if another team has reserved that window.
-2. **Transaction Isolation (`prisma.$transaction`):**
-   * Encapsulates overlap query and insertion inside an ACID transaction.
-   * Prevents race conditions when two users click "Confirm" simultaneously.
+This formula mathematically eliminates all 4 possible collision scenarios:
+1. ⏩ **Partial overlap at start**
+2. ⏪ **Partial overlap at end**
+3. 🔽 **Completely contained within**
+4. 🔼 **Completely encompassing the slot**
+
+### 🛡️ Dual-Layer Implementation:
+1. ⚡ **Pre-flight Live Detection (`/api/check-conflict`):**
+   * Real-time debounced check triggered as user selects date and times in the modal.
+   * Warns the user *before* submission if an overlap is detected.
+2. 🔐 **Database ACID Transaction (`prisma.$transaction`):**
+   * Wraps validation and insertion within an atomic database transaction.
+   * Prevents race conditions when two users click "Confirm" at the exact same millisecond.
 
 ---
 
-## 5. Local Setup & Installation Guide
+## 🚀 Local Setup & Installation Guide
 
-### Prerequisites
+### 📋 Prerequisites
 * **Node.js**: v18.0.0 or higher
 * **npm**: v9.0.0 or higher
-* **PostgreSQL Connection String** (Local or Cloud like Neon)
+* **PostgreSQL Connection String** (Local or Cloud like [Neon](https://neon.tech))
 
-### Step 1: Clone the Repository
+### 1️⃣ Step 1: Clone the Repository
 ```bash
-git clone https://github.com/your-username/resource-reservation-app.git
+git clone https://github.com/muflamuffathi-creator/resource-reservation-app.git
 cd resource-reservation-app
 ```
 
-### Step 2: Install Dependencies
+### 2️⃣ Step 2: Install Dependencies
 ```bash
 npm install --legacy-peer-deps
 ```
 
-### Step 3: Configure Environment Variables
+### 3️⃣ Step 3: Configure Environment Variables
 Create a `.env` file in the project root:
 ```env
 # Neon PostgreSQL Connection Strings
 DATABASE_URL="postgresql://neondb_owner:password@ep-xyz-pooler.region.aws.neon.tech/neondb?sslmode=require"
 DATABASE_URL_UNPOOLED="postgresql://neondb_owner:password@ep-xyz.region.aws.neon.tech/neondb?sslmode=require"
-
-# Neon Project Context
-NEON_ORG_ID="org-your-org"
-NEON_PROJECT_ID="your-project-id"
-NEON_BRANCH_NAME="production"
 ```
 
-### Step 4: Sync Database Schema & Seed Data
+### 4️⃣ Step 4: Sync Database Schema & Seed Data
 ```bash
 # Push schema directly to PostgreSQL
 npx prisma db push
 
-# Seed realistic facilities, labs, and demo bookings
-node prisma/seed.mjs
+# Generate Prisma Client
+npx prisma generate
+
+# Seed realistic facilities and demo reservations
+npm run db:seed
 ```
 
-### Step 5: Start the Development Server
+### 5️⃣ Step 5: Start the Development Server
 ```bash
 npm run dev
 ```
-Open **[http://localhost:3000](http://localhost:3000)** in your browser.
+Open **[http://localhost:3000](http://localhost:3000)** in your browser 🎉.
 
 ---
 
-## 6. Demonstration Video Script & Talking Points (3–5 Minutes)
+## 📹 Demonstration Video Script & Talking Points (3–5 Minutes)
 
 When recording your screen demonstration video:
 
-1. **Introduction (0:00 - 0:45):**
+1. 🎙️ **Introduction (0:00 - 0:45):**
    * Introduce yourself and state the purpose: Solving PrimeWave Lab's shared facility scheduling challenges.
    * Highlight the core stack: Next.js App Router, TypeScript, Neon PostgreSQL, and Prisma.
-2. **Dashboard & Metric Overview (0:45 - 1:30):**
+2. 🖥️ **Dashboard & Metric Overview (0:45 - 1:30):**
    * Show the homepage metrics: Total Resources, Active Bookings Today, and 100% Conflict Prevention.
-   * Show the featured shared facilities (Executive Boardrooms, 3D Prototyping FabLab, Media Studio).
-3. **Demonstrating Conflict Prevention (1:30 - 2:45):**
-   * Click **"Book Resource"**.
-   * Pick *Boardroom Alpha* and select a time slot that overlaps with the existing *Q4 Architecture Review* meeting (e.g. 10:00 AM - 11:00 AM).
-   * Show the instant red warning: *"Schedule Conflict Detected"*.
-   * Shift the time to an available window (e.g. 11:30 AM - 12:30 PM) to show the green confirmation: *"Slot is available"*.
+   * Highlight the featured shared facilities (Executive Boardrooms, 3D Prototyping FabLab, Media Studio).
+3. 🛡️ **Demonstrating Conflict Prevention (1:30 - 2:45):**
+   * Click **"Book Now"** on *Conference Room A*.
+   * Select a time slot that overlaps with an existing booking (e.g. `10:00 AM - 11:00 AM`).
+   * Show the instant red warning: *"Scheduling Conflict Detected"*.
+   * Shift the time to a free window (e.g. `11:30 AM - 12:30 PM`) to show the green confirmation: *"Slot is available"*.
    * Submit and show the booking appearing immediately on the live feed.
-4. **Timeline & Booking Management (2:45 - 3:30):**
-   * Navigate to `/schedule` to show the daily 08:00–18:00 hourly timeline.
+4. 📅 **Timeline & Booking Management (2:45 - 3:30):**
+   * Navigate to `/schedule` to show the daily timeline.
    * Navigate to `/reservations` and demonstrate canceling a reservation, freeing up that slot in real time.
-5. **Architectural Highlights & Closing (3:30 - 4:15):**
+5. 🏁 **Architectural Highlights & Closing (3:30 - 4:15):**
    * Explain the mathematical overlap condition and transaction serialization.
    * Conclude by summarizing reliability, usability, and maintainability.
+
+---
+
+## 👨‍💻 Author
+
+* **Developer:** Mufla Muffathi ([@muflamuffathi-creator](https://github.com/muflamuffathi-creator))
+* **Organization:** PrimeWave Lab Assessment Project
