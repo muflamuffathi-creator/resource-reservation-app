@@ -33,7 +33,7 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-6 pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-400">
-          <p>© {new Date().getFullYear()} PrimeWave Lab. Built for Software Engineering Internship Assessment.</p>
+          <p>© 2026 PrimeWave Lab. Built for Software Engineering Internship Assessment.</p>
           <div className="flex items-center gap-4">
             <Link href="/" className="hover:text-emerald-400 transition-colors">Dashboard</Link>
             <Link href="/resources" className="hover:text-emerald-400 transition-colors">Resources</Link>
