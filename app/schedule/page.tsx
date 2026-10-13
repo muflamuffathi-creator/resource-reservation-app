@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
@@ -45,14 +45,18 @@ export default function SchedulePage() {
   function loadData() {
     setLoading(true);
     Promise.all([
-      fetch("/api/resources").then((res) => res.json()),
-      fetch("/api/reservations").then((res) => res.json()),
+      fetch("/api/resources").then((res) => res.json()).catch(() => []),
+      fetch("/api/reservations").then((res) => res.json()).catch(() => []),
     ])
       .then(([resData, bookData]) => {
-        setResources(resData || []);
-        setReservations(bookData || []);
+        setResources(Array.isArray(resData) ? resData : []);
+        setReservations(Array.isArray(bookData) ? bookData : []);
       })
-      .catch((err) => console.error(err))
+      .catch((err) => {
+        console.error(err);
+        setResources([]);
+        setReservations([]);
+      })
       .finally(() => setLoading(false));
   }
 
@@ -69,152 +73,138 @@ export default function SchedulePage() {
 
   const dateString = currentDate ? currentDate.toISOString().split("T")[0] : "";
 
-  // Filter reservations for the selected date
-  const dayReservations = reservations.filter((r) => {
-    if (r.status === "CANCELLED" || !dateString) return false;
-    const rDate = new Date(r.startTime).toISOString().split("T")[0];
-    return rDate === dateString;
-  });
+  function getSlotBooking(resourceId: string, time: string) {
+    if (!dateString || !Array.isArray(reservations)) return null;
+    const [hour] = time.split(":").map(Number);
+
+    return reservations.find((r) => {
+      if (r.resourceId !== resourceId || r.status === "CANCELLED") return false;
+      const start = new Date(r.startTime);
+      const end = new Date(r.endTime);
+      const resDate = start.toISOString().split("T")[0];
+      if (resDate !== dateString) return false;
+
+      const startHour = start.getHours();
+      const endHour = end.getHours() + (end.getMinutes() > 0 ? 1 : 0);
+      return hour >= startHour && hour < endHour;
+    });
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-      <Navbar
-        onOpenBooking={() => {
-          setSelectedResourceId(undefined);
-          setIsBookingOpen(true);
-        }}
-      />
+      <Navbar onOpenBooking={() => setIsBookingOpen(true)} />
 
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header with Date Navigator */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6 mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Daily Timeline & Availability</h1>
-            <p className="text-sm text-slate-400 mt-1">
-              Visual overview of active bookings across all shared facilities and equipment.
+            <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+              <Calendar className="h-6 w-6 text-emerald-400" /> Facility Timeline & Schedule
+            </h1>
+            <p className="mt-1 text-sm text-slate-400">
+              Interactive hourly visual matrix to track room occupancy and prevent overlaps.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handleDateChange(-1)}
-              className="rounded-xl border border-slate-800 bg-slate-900 p-2 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
-              <Calendar className="h-4 w-4 text-emerald-400" />
-              <span>
-                {currentDate
-                  ? currentDate.toLocaleDateString("en-US", {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })
-                  : "Today"}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-3 py-1.5 text-sm font-medium">
+              <button
+                onClick={() => handleDateChange(-1)}
+                className="rounded p-1 hover:bg-slate-800 text-slate-400 hover:text-white"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="min-w-32 text-center text-white font-semibold">
+                {currentDate?.toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
               </span>
+              <button
+                onClick={() => handleDateChange(1)}
+                className="rounded p-1 hover:bg-slate-800 text-slate-400 hover:text-white"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
             </div>
+
             <button
-              onClick={() => handleDateChange(1)}
-              className="rounded-xl border border-slate-800 bg-slate-900 p-2 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              onClick={() => setIsBookingOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/10 cursor-pointer"
             >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() => setCurrentDate(new Date())}
-              className="rounded-xl bg-slate-800 px-3 py-2 text-xs font-semibold text-emerald-400 hover:bg-slate-700 transition-colors"
-            >
-              Today
+              <Plus className="h-4 w-4" /> Reserve Slot
             </button>
           </div>
         </div>
 
-        {/* Timeline Grid */}
+        {/* Timeline Matrix */}
         {loading ? (
-          <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/40">
+          <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/50">
             <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
           </div>
         ) : (
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <div className="min-w-[800px]">
-                {/* Time Slot Header */}
-                <div className="grid grid-cols-12 border-b border-slate-800 bg-slate-950/70 text-xs font-semibold text-slate-400">
-                  <div className="col-span-3 p-4 border-r border-slate-800">Resource / Facility</div>
-                  <div className="col-span-9 grid grid-cols-10 text-center divide-x divide-slate-800/60">
-                    {timeSlots.slice(0, 10).map((time) => (
-                      <div key={time} className="py-4">
-                        {time}
-                      </div>
-                    ))}
-                  </div>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 overflow-x-auto shadow-2xl">
+            <div className="min-w-[850px]">
+              {/* Timeline Header (Time Slots) */}
+              <div className="grid grid-cols-12 gap-2 border-b border-slate-800/80 pb-3 mb-3 text-center">
+                <div className="col-span-3 text-left pl-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  Resource
                 </div>
+                {timeSlots.slice(0, 9).map((slot) => (
+                  <div key={slot} className="col-span-1 text-[11px] font-medium text-slate-400">
+                    {slot}
+                  </div>
+                ))}
+              </div>
 
-                {/* Resource Rows */}
-                <div className="divide-y divide-slate-800/80">
-                  {resources.map((resource) => {
-                    const resBookings = dayReservations.filter((r) => r.resourceId === resource.id);
+              {/* Resource Rows */}
+              <div className="space-y-3">
+                {resources.map((res) => (
+                  <div
+                    key={res.id}
+                    className="grid grid-cols-12 gap-2 items-center rounded-xl border border-slate-800/60 bg-slate-900/80 p-2.5 hover:border-slate-700 transition-all"
+                  >
+                    <div className="col-span-3 pl-2">
+                      <h4 className="text-sm font-bold text-white truncate">{res.name}</h4>
+                      <p className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+                        <MapPin className="h-3 w-3 text-slate-500" /> {res.location}
+                      </p>
+                    </div>
 
-                    return (
-                      <div key={resource.id} className="grid grid-cols-12 hover:bg-slate-900/40 transition-colors">
-                        {/* Resource Info */}
-                        <div className="col-span-3 p-4 border-r border-slate-800 flex flex-col justify-center">
-                          <h4 className="text-sm font-bold text-white leading-tight">{resource.name}</h4>
-                          <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
-                            <span className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" /> {resource.location}
-                            </span>
-                            <span>• Cap: {resource.capacity}</span>
-                          </div>
-                          <button
-                            onClick={() => {
-                              setSelectedResourceId(resource.id);
-                              setIsBookingOpen(true);
-                            }}
-                            className="mt-2 text-left text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
-                          >
-                            <Plus className="h-3 w-3" /> Book slot
-                          </button>
-                        </div>
-
-                        {/* Timeline slots */}
-                        <div className="col-span-9 p-3 relative flex items-center">
-                          {resBookings.length === 0 ? (
-                            <div className="w-full text-center text-xs text-slate-600 italic">
-                              Available all day
+                    {/* Hourly Blocks */}
+                    {timeSlots.slice(0, 9).map((slot) => {
+                      const booking = getSlotBooking(res.id, slot);
+                      return (
+                        <div key={slot} className="col-span-1 h-12 flex items-center justify-center">
+                          {booking ? (
+                            <div
+                              title={`${booking.title} (${booking.user.name})`}
+                              className="h-full w-full rounded-lg bg-rose-500/20 border border-rose-500/40 p-1 flex flex-col justify-center items-center text-center cursor-help overflow-hidden"
+                            >
+                              <span className="text-[10px] font-bold text-rose-300 truncate w-full">
+                                {booking.title}
+                              </span>
+                              <span className="text-[9px] text-rose-400/80 truncate w-full">
+                                {booking.user.name}
+                              </span>
                             </div>
                           ) : (
-                            <div className="w-full space-y-1.5">
-                              {resBookings.map((b) => {
-                                const start = new Date(b.startTime);
-                                const end = new Date(b.endTime);
-
-                                return (
-                                  <div
-                                    key={b.id}
-                                    className="rounded-lg bg-emerald-500/15 border border-emerald-500/30 px-3 py-2 text-xs text-emerald-200 flex items-center justify-between"
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <div className="h-2 w-2 rounded-full bg-emerald-400" />
-                                      <span className="font-semibold text-white">{b.title}</span>
-                                      <span className="text-emerald-400/80">({b.user.name})</span>
-                                    </div>
-                                    <div className="text-[11px] text-slate-400 flex items-center gap-1">
-                                      <Clock className="h-3 w-3" />
-                                      {start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} -{" "}
-                                      {end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
+                            <button
+                              onClick={() => {
+                                setSelectedResourceId(res.id);
+                                setIsBookingOpen(true);
+                              }}
+                              className="h-full w-full rounded-lg bg-emerald-500/5 border border-emerald-500/10 hover:bg-emerald-500/20 hover:border-emerald-500/30 transition-all flex items-center justify-center text-[10px] font-semibold text-emerald-500/70 hover:text-emerald-300 cursor-pointer"
+                            >
+                              Free
+                            </button>
                           )}
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
