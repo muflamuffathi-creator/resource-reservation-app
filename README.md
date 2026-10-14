@@ -36,7 +36,7 @@
 ### Tools & Platforms
 ![Git](https://img.shields.io/badge/Git-E44C30?style=for-the-badge&logo=git&logoColor=white)
 ![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)
-![VS Code](https://img.shields.io/badge/Visual_Studio_Code-0078D4?style=for-the-badge&logo=visual%20studio%20code&logoColor=white)
+![VS Code](https://img.shields.io/badge/VS_Code-0078D4?style=for-the-badge&logo=visual%20studio%20code&logoColor=white)
 ![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=Postman&logoColor=white)
 
 ---
@@ -59,63 +59,25 @@ PrimeWave Resource Reservation System provides:
 
 ## 📊 Entity Relationship (ER) Diagram
 
-![PrimeWave ER Diagram](./docs/er-diagram.png)
+<p align="center">
+  <img src="./docs/er-diagram.png" alt="PrimeWave Entity Relationship Diagram" width="800" />
+</p>
 
-```mermaid
-erDiagram
-    DEPARTMENT ||--o{ USER : employs
-    USER ||--o{ RESERVATION : books
-    CATEGORY ||--o{ RESOURCE : classifies
-    RESOURCE ||--o{ RESERVATION : scheduled_for
+### 🗄️ Database Entities & Architecture
 
-    DEPARTMENT {
-        string id PK
-        string name
-        string code UK
-        datetime createdAt
-    }
+| Entity | Primary Key | Foreign Keys | Key Attributes & Enums | Description |
+|---|---|---|---|---|
+| **Department** | `id` (UUID) | — | `name`, `code` (Unique) | Organizational units and faculties |
+| **User** | `id` (UUID) | `departmentId` | `name`, `email` (Unique), `role` (`ADMIN`, `MEMBER`) | Registered team members and administrators |
+| **Category** | `id` (UUID) | — | `name` (Unique), `icon` | Resource classifications (e.g., Computing, Labs) |
+| **Resource** | `id` (UUID) | `categoryId` | `name`, `location`, `capacity`, `status` (`ACTIVE`, `MAINTENANCE`, `RETIRED`) | Physical or digital facilities and equipment |
+| **Reservation** | `id` (UUID) | `resourceId`, `userId` | `title`, `startTime`, `endTime`, `status` (`CONFIRMED`, `CANCELLED`, `COMPLETED`) | Scheduled bookings with conflict prevention |
 
-    USER {
-        string id PK
-        string email UK
-        string name
-        string role "ADMIN | MEMBER"
-        string departmentId FK
-        datetime createdAt
-    }
-
-    CATEGORY {
-        string id PK
-        string name UK
-        string icon
-        datetime createdAt
-    }
-
-    RESOURCE {
-        string id PK
-        string name
-        string categoryId FK
-        string location
-        int capacity
-        string status "ACTIVE | MAINTENANCE | RETIRED"
-        string description
-        datetime createdAt
-        datetime updatedAt
-    }
-
-    RESERVATION {
-        string id PK
-        string resourceId FK
-        string userId FK
-        string title
-        datetime startTime TIMESTAMPTZ
-        datetime endTime TIMESTAMPTZ
-        string status "CONFIRMED | CANCELLED | COMPLETED"
-        string notes
-        datetime createdAt
-        datetime updatedAt
-    }
-```
+#### Relational Constraints:
+* **Department &rarr; User:** One department employs many users (`1:N`).
+* **Category &rarr; Resource:** One category classifies many resources (`1:N`).
+* **Resource &rarr; Reservation:** One resource is scheduled for many reservations (`1:N` with Cascade Delete).
+* **User &rarr; Reservation:** One user books many reservations (`1:N` with Cascade Delete).
 
 ---
 
