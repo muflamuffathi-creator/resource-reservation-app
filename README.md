@@ -61,10 +61,6 @@ PrimeWave Resource Reservation System provides:
 
 ![PrimeWave ER Diagram](./docs/er-diagram.png)
 
-> 🔗 **Interactive Cloud Diagram Link:** [View & Edit on Mermaid AI](https://mermaid.ai/app/projects/61fd4f1c-0c36-4595-9485-c41cd8c53bc0/diagrams/7e0052cd-e55a-4be9-9852-001a7550a6e1/share/invite/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkb2N1bWVudElEIjoiN2UwMDUyY2QtZTU1YS00YmU5LTk4NTItMDAxYTc1NTBhNmUxIiwiYWNjZXNzIjoiRWRpdCIsInB1cnBvc2UiOiJzaGFyZS1pbnZpdGUiLCJpYXQiOjE3OTE5MTA1MDgsImV4cCI6MTc5NDUwMjUwOH0.fy_aPlq0-37DZ6MJ2nRcjSwDVDWGBP9Ss_OlUiz3UL0?entryPoint=share-modal)
-
-### Mermaid Specification:
-
 ```mermaid
 erDiagram
     DEPARTMENT ||--o{ USER : employs
